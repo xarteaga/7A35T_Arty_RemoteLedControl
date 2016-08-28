@@ -1,0 +1,10 @@
+
+
+OPTION psf_version = 2.1;
+
+BEGIN DRIVER massive_pwm
+	OPTION supported_peripherals = (massive_pwm);
+	OPTION copyfiles = all;
+	OPTION VERSION = 1.0;
+	OPTION NAME = massive_pwm;
+END DRIVER
