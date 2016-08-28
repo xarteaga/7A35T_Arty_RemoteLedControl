@@ -13,7 +13,7 @@ set proj_dir [get_property directory [current_project]]
 
 # Set project properties
 set obj [get_projects hw_system]
-set_property board_part digilentinc.com:arty:part0:1.1 [current_project]
+set_property board_part digilentinc.com:Arty:1.1 [current_project]
 
 # Set the custom IP repository folder location to ./ip_repo
 set_param bd.enableIpSharedDirectory true
