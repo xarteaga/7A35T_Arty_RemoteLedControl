@@ -1,3 +1,15 @@
+# Local Documentation
+fpga/docs
+
+# infos, Logs and reports
+*.log
+*.jou
+*.str
+
+# Hardware system project
+fpga/hw_system/hw_system
+fpga/hw_system/output
+
 # Object files
 *.o
 *.ko
