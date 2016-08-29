@@ -26,4 +26,4 @@ if {([get_property NEEDS_REFRESH [get_runs impl_1]] == "1") || ([get_property PR
 
 # 4) Open implementation and generate bitstream
 open_run impl_1
-write_bitstream -bin_file output/hw_system.bit
+write_bitstream -force -bin_file output/hw_system.bit
