@@ -10,6 +10,9 @@ fpga/docs
 fpga/hw_system/hw_system
 fpga/hw_system/output
 
+# Auto generated workspace
+fpga/sw_system/sdk_workspace
+
 # Object files
 *.o
 *.ko

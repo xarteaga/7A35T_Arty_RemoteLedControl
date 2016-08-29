@@ -11,7 +11,7 @@ HW_DEF_SDK = output/hw_system.hdf
 
 # Xilinx Binaries
 VIVADO = vivado -mode batch
-XSDK = xsdk -mode batch
+XSDK = xsdk -batch
 
 # Paths
 LOG_PATH = output/logs
