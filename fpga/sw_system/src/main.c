@@ -36,8 +36,8 @@
 
 #include "netif/xadapter.h"
 
-#include "platform.h"
-#include "platform_config.h"
+#include "platform/platform.h"
+#include "platform/platform_config.h"
 
 #include "lwip/tcp.h"
 #include "lwip/tcp_impl.h"

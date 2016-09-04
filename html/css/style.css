@@ -1,0 +1,58 @@
+.wardrobe_base {
+    background-color: #eee;
+    width: 200px;
+    height: 200px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+}
+
+.color_picker_base {
+    height: 200px;
+    overflow: visible;
+}
+
+@media (min-width: 768px) {
+    .color_picker_base {
+        height: 200px;
+        overflow: visible;
+    }
+}
+
+.color_picker_tile {
+    position: absolute;
+    border-style: none;
+    border-radius: 5px;
+
+}
+
+.color_picker_tile:hover {
+    transform: scale(2);
+    border-radius: 5px;
+    z-index: 1000000;
+    border-color: #B2B2B2;
+    border-style: solid;
+    border-width: 1px;
+}
+
+.shelve_base {
+    border-color: #B2B2B2;
+    background-color: #e0e0e0;
+    position: absolute;
+    vertical-align: middle;
+    border-style: solid;
+}
+
+.shelve_label {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: normal;
+    height: 100%;
+    position: relative;
+    top: 25%;
+}
+
+.shelve_top {
+    height: 200px;
+    width: 100px;
+}
