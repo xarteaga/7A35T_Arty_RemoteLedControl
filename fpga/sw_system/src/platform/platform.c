@@ -86,6 +86,7 @@ timer_callback()
 
 static XIntc intc;
 extern XUartLite wifi_uart;
+extern XUartLite usb_uart;
 
 void platform_setup_interrupts()
 {
@@ -94,6 +95,9 @@ void platform_setup_interrupts()
 
 	XIntc_Initialize(intcp, XPAR_INTC_0_DEVICE_ID);
 
+	XIntc_Connect(intcp, XPAR_INTC_0_UARTLITE_0_VEC_ID,
+				  (XInterruptHandler)XUartLite_InterruptHandler,
+				  (void *)&usb_uart);
 	XIntc_Connect(intcp, XPAR_INTC_0_UARTLITE_2_VEC_ID,
 				   (XInterruptHandler)XUartLite_InterruptHandler,
 				   (void *)&wifi_uart);
@@ -145,8 +149,8 @@ void platform_setup_interrupts()
 	XIntc_Enable(intcp, XPAR_INTC_0_EMACLITE_0_VEC_ID);
 #endif
 
+	XIntc_Enable(intcp, XPAR_INTC_0_UARTLITE_0_VEC_ID);
 	XIntc_Enable(intcp, XPAR_INTC_0_UARTLITE_2_VEC_ID);
-	//XIntc_RegisterHandler(intcp, XPAR_INTC_0_UARTLITE_2_VEC_ID, (XInterruptHandler)wifi_recv_callback, NULL);
 
 }
 

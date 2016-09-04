@@ -49,12 +49,17 @@
 #include "wifi_uart.h"
 #include "wifi.h"
 #include "vaxi_os.h"
+#include "remote.h"
+#include "board_rgb_leds/board_rgb_leds.h"
+#include "usb_uart/usb_uart.h"
+#include "web_loader/web_loader.h"
 
 extern massive_pwm_t *pwm;
 
 resource_t resources[] = {
 		{ "/pwm/", pwm_callback },
-		{ "/lcd", lcd_callback },
+        { "/lcd", lcd_callback },
+        { "/", web_loader_resource },
 		{ 0, 0}
 };
 
@@ -138,6 +143,16 @@ int main()
 	xil_printf("Setting default itf...\r\n");
 	netif_set_default(echo_netif);
 
+    /* start the application (web server, rxtest, txtest, etc..) */
+    wifi_uart_init();
+    usb_uart_init();
+    http_server_start(80);
+    remote_init ();
+    lcd_init();
+    wifi_init();
+    vaxi_os_init();
+    board_rgb_leds_init(1);
+
 	/* now enable interrupts */
 	xil_printf("Enabling interrupts...\r\n");
 	platform_enable_interrupts();
@@ -192,13 +207,7 @@ int main()
 	pwm->channels[3].red = 0;
 	pwm->channels[3].offset = 192;
 
-	/* start the application (web server, rxtest, txtest, etc..) */
-	wifi_uart_init();
-	http_server_start(80);
-	remote_init ();
-	lcd_init();
-	wifi_init();
-	vaxi_os_init();
+
 
 	lcd_write("    [VaXiOS]", 1, 12);
 	lcd_write("    Welcome!", 2, 12);
@@ -219,8 +228,14 @@ int main()
 		remote_task();
 
 		wifi_uart_task();
+        usb_uart_task();
+
 		wifi_task();
 		vaxi_os_task();
+
+		//usb_uart_write("hello\r\n", 7);
+        //xil_printf("\r\n");
+		//xil_printf("%c", getchar());
 
 		/*if (lcd_is_writing() == FALSE){
 			char rst_buf[2] = {124, 'r'};

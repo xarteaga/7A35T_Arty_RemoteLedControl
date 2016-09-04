@@ -20,6 +20,8 @@ extern resource_t resources[];
 void print_app_header()
 {
 	xil_printf("\n\r\n\r----- VaXi'S Server V. 1.0.a ------\n\r");
+	xil_printf("Compiled date: %s\n\r", __DATE__);
+	xil_printf("Compiled time: %s\n\r", __TIME__);
 }
 
 int readMethodFromBuffer (char * buffer, uint16_t size, uint8_t *method) {
@@ -197,12 +199,17 @@ int send_response (struct tcp_pcb *tpcb, response_t *res) {
 	int n, err, i;
 	char buffer [1024];
 
-	n = sprintf(buffer, "HTTP 200 OK\r\nContent-Length: %u\r\n", (unsigned int)res->content_length);
+	if (res->code == RES_OK) {
+		n = sprintf(buffer, "HTTP 200 OK\r\nContent-Length: %u\r\n", (unsigned int) res->content_length);
+	} else /*if (res->code == RES_REDIRECT)*/{
+		n = sprintf(buffer, "HTTP/1.1 307 Temporary Redirect\r\n");
+	}
 
 	for(i = 0; strlen(res->headers[i].name) > 0; i++){
 		n += sprintf(buffer + n, "%s : %s\r\n", res->headers[i].name, res->headers[i].value);
 	}
 	n += sprintf(buffer + n, "\r\n");
+    xil_printf(buffer);
 
 	if (tcp_sndbuf(tpcb) > n) {
 			err = tcp_write(tpcb, buffer, n, 1);
@@ -256,14 +263,18 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 		}
 	}
 
-	/**/
-	//lcd_write("New GET request:", 1, 16);
-	//lcd_write(req.url, 1, strlen(req.url));
 
+    memset(&res, 0, sizeof(response_t)) ;
 	res.code = RES_OK;
 	res.content = "Hello World!\r\n";
 	if (resources[i].callback != 0){
 		resources[i].callback(&req, &res);
+	} else {
+        xil_printf("URL not implemented: %s, redirecting...\r\n", req.url);
+        res.code = RES_REDIRECT;
+		strcpy(res.headers[0].name, "Location");
+		strcpy(res.headers[0].value, "https://dl.dropboxusercontent.com/u/44070581/CoolLights/index.html");
+        res.content = "https://dl.dropboxusercontent.com/u/44070581/CoolLights/index.html";
 	}
 	res.content_length = strlen(res.content);
 

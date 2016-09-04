@@ -14,7 +14,8 @@
 #include "wifi.h"
 #include "tinysh.h"
 #include "vaxi_os.h"
-#include "remote.h"
+#include "usb_uart/usb_uart.h"
+#include "./remote.h"
 
 #define VAXI_OS_MAX_CMD 128
 
@@ -78,14 +79,14 @@ void vaxi_os_fsm_lap () {
 		wifi_ap_list = wifi_get_ap_list();
 
 		size = sprintf(buf, "           --- WiFi Access Points List --- \r\n");
-		remote_send(buf, size);
+		usb_uart_write(buf, size);
 
 		size = sprintf(buf, " ----------- SSID ------------- |--- RSSI ---\r\n");
-		remote_send(buf, size);
+        usb_uart_write(buf, size);
 
 		for(n = 0; (wifi_ap_list[n].ecn != WIFI_AP_ECN_EMPTY) && n < WIFI_AP_MAX_LIST; n ++) {
 			size = sprintf(buf, "%32s    %d dBm\r\n", wifi_ap_list[n].ssid, wifi_ap_list[n].rssi);
-			remote_send(buf, size);
+            usb_uart_write(buf, size);
 		}
 		tinysh_char_in('\r');
 		tinysh_char_in('\n');
@@ -102,7 +103,7 @@ void vaxi_os_fsm_reset () {
 
 	if (wifi_get_fsm_state() == WIFI_FSM_IDLE) {
 		size = sprintf(buf, "Reset OK!\r\n");
-		remote_send(buf, size);
+        usb_uart_write(buf, size);
 		tinysh_char_in('\n');
 
 		vaxi_os_fsm_state = VAXI_OS_FSM_STATE_IDLE;

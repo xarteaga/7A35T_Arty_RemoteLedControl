@@ -12,6 +12,7 @@
 
 /* RESPONSE CODES */
 #define RES_OK 200
+#define RES_REDIRECT 301
 #define RES_BAD_REQUEST 400
 
 typedef struct {

@@ -199,4 +199,4 @@ function pick_color (chan) {
 }
 
 /* Init block */
-//init();
+init();

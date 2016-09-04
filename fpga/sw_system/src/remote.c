@@ -6,15 +6,16 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #include "lwip/err.h"
 #include "lwip/tcp.h"
 
 #include "wifi.h"
 #include "remote.h"
+#include "usb_uart/usb_uart.h"
 
 #define OPENAT_SERVER_PORT 22
 #define MAX_BUFFER_SIZE 1024
@@ -37,6 +38,20 @@ u32 remote_available() {
 		n = (remote_buff_recv_write_ptr + MAX_BUFFER_SIZE) - remote_buff_recv_read_ptr;
 	}
 	return n;
+}
+
+void remote_print(const char *format, ...){
+	int size;
+	char buffer[515];
+	va_list args;
+
+	/* Format string */
+	va_start (args, format);
+	size = vsprintf(buffer, format, args);
+	va_end (args);
+
+	/* Send */
+	remote_send(buffer, size);
 }
 
 void remote_send(char *buf, u32 size) {
@@ -172,23 +187,33 @@ void remote_init () {
 void remote_task () {
 	u8 buf[MAX_BUFFER_SIZE + 1];
 	u32 n, size;
+	char c;
 
+
+	/* Get send buffer enqueued data size */
+	if (remote_buff_send_write_ptr >= remote_buff_send_read_ptr) {
+		size = remote_buff_send_write_ptr - remote_buff_send_read_ptr;
+	} else {
+		size = (remote_buff_send_write_ptr + MAX_BUFFER_SIZE) - remote_buff_send_read_ptr;
+	}
+
+	if (size > MAX_BUFFER_SIZE)
+		size = MAX_BUFFER_SIZE;
+
+	for (n = 0; n < size; n++){
+		buf[n] = remote_buff_send[remote_buff_send_read_ptr];
+		usb_uart_write(&buf[n], 1);
+		remote_buff_send_read_ptr = (remote_buff_send_read_ptr + 1)%MAX_BUFFER_SIZE;
+	}
+
+	/* If there is a client then transmit over the socket */
 	if (client != NULL) {
-		if (remote_buff_send_write_ptr >= remote_buff_send_read_ptr) {
-			size = remote_buff_send_write_ptr - remote_buff_send_read_ptr;
-		} else {
-			size = (remote_buff_send_write_ptr + MAX_BUFFER_SIZE) - remote_buff_send_read_ptr;
-		}
-
-		if (size > MAX_BUFFER_SIZE)
-			size = MAX_BUFFER_SIZE;
-
-		for (n = 0; n < size; n++){
-			buf[n] = remote_buff_send[remote_buff_send_read_ptr];
-			remote_buff_send_read_ptr = (remote_buff_send_read_ptr + 1)%MAX_BUFFER_SIZE;
-		}
-
 		tcp_write(client, buf, size, 1);
+	}
+
+	while(usb_uart_read(&c, 1)>0) {
+		remote_buff_recv[remote_buff_recv_write_ptr] = c;
+		remote_buff_recv_write_ptr = (remote_buff_recv_write_ptr + 1)%MAX_BUFFER_SIZE;
 	}
 
 }

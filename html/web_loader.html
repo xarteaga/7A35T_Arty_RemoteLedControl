@@ -1,42 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-	<title>ArTy ConTroL 1.0</title>
-</head>
+<head><title>ArTy ConTroL 1.0</title></head>
+<body></body>
 <script>
 function asyncLoadResource(type, url) {
-url = "https://raw.githubusercontent.com/xarteaga/7A35T_Arty_RemoteLedControl/master/html/" + url;
+url = "https://dl.dropboxusercontent.com/u/44070581/CoolLights/" + url;
 switch(type){
 case "HTML":
-	var tag = document.createElement("body");
-	tag.type = "text/html";
-        tag.src = url;
-        tag.async = false;
-	tag.onerror = function () { asyncLoadResource(type, url);};
-	document.getElementsByTagName('html')[0].appendChild(tag);
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			document.write(this.responseText);
+			asyncLoadResource("CSS", "css/bootstrap.min.css");
+			asyncLoadResource("CSS", "css/style.css");
+			asyncLoadResource("JS", "js/jquery.min.js");
+			asyncLoadResource("JS", "js/bootstrap.min.js");
+			asyncLoadResource("JS", "js/engine.js");
+		}
+	};
+	xhttp.open("GET", url, true);
+	xhttp.send();
+	break;
 case "JS":
         var tag = document.createElement("script");
 	tag.type = "text/javascript";
         tag.src = url;
         tag.async = false;
-	tag.onerror = function () { asyncLoadResource(type, url);};
-	document.getElementsByTagName('head')[0].appendChild(tag);
+	document.head.appendChild(tag);
+	break;
 case "CSS":
 	var tag = document.createElement("link");
 	tag.rel = "stylesheet";
 	tag.type = "text/css";
 	tag.href = url;
 	tag.async = false;
-	tag.onerror = function () { asyncLoadResource(type, url);};
-	document.getElementsByTagName('head')[0].appendChild(tag);
+	document.head.appendChild(tag);
+	break;
 }
 }
 asyncLoadResource("HTML", "index.html");
-asyncLoadResource("CSS", "css/bootstrap.min.css");
-asyncLoadResource("CSS", "css/style.css");
-asyncLoadResource("JS", "js/bootstrap.min.js");
-asyncLoadResource("JS", "js/engine.js");
-asyncLoadResource("JS", "js/jquery.min.js");
+
+
+
 </script>
 </html>
 
