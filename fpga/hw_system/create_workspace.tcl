@@ -9,7 +9,7 @@ sdk set_workspace ../sw_system/sdk_workspace
 sdk create_hw_project -name hw_0 -hwspec output/hw_system.hdf
 
 # Create BSP
-sdk create_bsp_project -name bsp_0 -hwproject hw_0 -proc microblaze_0 -os standalone
+sdk create_bsp_project -name bsp_0 -hwproject hw_0 -mss src/system.mss
 
 # Create Hello World Project
 sdk create_app_project -name helloworld -hwproject hw_0 -proc microblaze_0 -os standalone -lang C -app {Hello World} -bsp bsp_0
