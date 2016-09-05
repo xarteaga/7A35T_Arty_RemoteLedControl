@@ -482,12 +482,12 @@ proc create_root_design { parentCell } {
 		[get_bd_pins microblaze_0_axi_periph/M08_ARESETN] \
 		[get_bd_pins microblaze_0_axi_periph/ARESETN] \
 		[get_bd_pins axi_timer_0/s_axi_aresetn] \
+		[get_bd_pins massive_pwm_0/rst] \
+		[get_bd_pins massive_pwm_1/rst] \
 		[get_bd_pins mig_7series_0/aresetn] 
 		
 	connect_bd_net -net microblaze_0_reset [get_bd_pins proc_sys_reset_0/mb_reset] \
 		[get_bd_pins microblaze_0_axi_intc/processor_rst] \
-		[get_bd_pins massive_pwm_0/rst] \
-		[get_bd_pins massive_pwm_1/rst] \
 		[get_bd_pins fit_timer_0/Rst] \
 		[get_bd_pins microblaze_0/Reset]
 	connect_bd_net -net proc_sys_reset_0_bus_struct_reset [get_bd_pins proc_sys_reset_0/bus_struct_reset] \
