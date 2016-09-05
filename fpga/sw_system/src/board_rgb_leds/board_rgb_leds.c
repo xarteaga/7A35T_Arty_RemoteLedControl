@@ -15,23 +15,31 @@ void board_rgb_leds_init(u32 f) {
     memset(board_rgb_leds, 0, sizeof(board_rgb_leds_t));
 
     /* Set PWM divider */
-    board_rgb_leds->divider = (u32)((BOARD_RGB_LEDS_CLK_BASE>>8)/f);
-
-    board_rgb_leds->channels[0].red = 127;
-    board_rgb_leds->channels[0].green = 127;
-    board_rgb_leds->channels[0].blue = 127;
-    board_rgb_leds->channels[2].red = 127;
-    board_rgb_leds->channels[2].green = 127;
-    board_rgb_leds->channels[2].blue = 127;
+    board_rgb_leds_set_freq(f);
 
     /* VaXi OS Commands */
     tinysh_add_command(&tinysh_board_rgb_leds);
 }
 
-int board_rgb_leds_set(u8 ch, float r, float g, float b) {
+board_rgb_led_t* board_rgb_leds_get_channel(u32 chan) {
+    /* Return null by default */
+    board_rgb_led_t* ret = NULL;
+
+    /* Check channel index to avoid Segmentation fault */
+    if (chan < BOARD_RGB_LEDS_N)
+        ret = &(board_rgb_leds->channels[chan]);
+
+    return ret;
+}
+
+void board_rgb_leds_set_freq(u32 f) {
+    /* Set PWM divider */
+    board_rgb_leds->divider = (u32)((BOARD_RGB_LEDS_CLK_BASE>>8)/f);
+}
+
+int board_rgb_leds_set_float(u8 ch, float r, float g, float b) {
     int ret = 0;
     if (ch < BOARD_RGB_LEDS_N) {
-        board_rgb_leds->channels[ch].offset = 32;
         board_rgb_leds->channels[ch].red = (u8) (256.0 * r);
         board_rgb_leds->channels[ch].green = (u8) (256.0 * g);
         board_rgb_leds->channels[ch].blue = (u8) (256.0 * b);
@@ -95,6 +103,30 @@ void board_rgb_leds_cmd (int argc, char ** argv){
     /* Set color */
     if (err > 0) {
         remote_print("OK!\r\n");
-        board_rgb_leds_set((u8) chan, r, g, b);
+        board_rgb_leds_set_float((u8) chan, r, g, b);
     }
+}
+
+int board_rgb_leds_set_hex_color (u32 ch, u32 hex) {
+    int ret = 0;
+    if (ch < BOARD_RGB_LEDS_N) {
+        board_rgb_leds->channels[ch].red = (u8) ((hex >> 16) & 0xFF);
+        board_rgb_leds->channels[ch].green = (u8) ((hex >> 8) & 0xFF);
+        board_rgb_leds->channels[ch].blue = (u8) ((hex & 0xFF));
+    } else {
+        ret = (-1);
+    }
+
+    return ret;
+}
+
+int board_rgb_leds_set_offset(u32 ch, u32 offset) {
+    int ret = 0;
+    if (ch < BOARD_RGB_LEDS_N) {
+        board_rgb_leds->channels[ch].offset = offset;
+    } else {
+        ret = (-1);
+    }
+
+    return ret;
 }

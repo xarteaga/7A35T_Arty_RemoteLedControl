@@ -8,7 +8,11 @@ project (board_rgb_leds C )
 add_library(board_rgb_leds
 			board_rgb_leds.h
 			board_rgb_leds.c
+			board_rgb_leds_resource.h
+			board_rgb_leds_resource.c
 		)
 
 # Include Directories
 include_directories(board_rgb_leds ../../sdk_workspace/bsp_0/microblaze_0/include)
+include_directories(board_rgb_leds ../)
+

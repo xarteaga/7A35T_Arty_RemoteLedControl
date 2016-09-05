@@ -74,8 +74,9 @@ target_link_libraries(sw_system web_loader)
 
 # Directories
 include_directories(sw_system
-	sdk_workspace/bsp_0/microblaze_0/include
-	src
+		sdk_workspace/bsp_0/microblaze_0/include
+		src/board_rgb_leds
+		src
 	)
 link_directories(sw_system sdk_workspace/bsp_0/microblaze_0/lib)
 #target_compile_definitions(sw_system PRIVATE -ooo)

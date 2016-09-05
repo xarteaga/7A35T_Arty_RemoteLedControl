@@ -53,16 +53,19 @@
 #include "board_rgb_leds/board_rgb_leds.h"
 #include "usb_uart/usb_uart.h"
 #include "web_loader/web_loader.h"
+#include "board_rgb_leds_resource.h"
 
 extern massive_pwm_t *pwm;
 
 resource_t resources[] = {
+		{ "/board_rgb_leds/freq", board_rgb_leds_resource_set_frequency},
+        { "/board_rgb_leds/color", board_rgb_leds_resource_set_color},
+        { "/board_rgb_leds/offset", board_rgb_leds_resource_set_offset},
 		{ "/pwm/", pwm_callback },
         { "/lcd", lcd_callback },
         { "/", web_loader_resource },
 		{ 0, 0}
 };
-
 
 #if LWIP_DHCP==1
 #include "lwip/dhcp.h"
@@ -232,16 +235,6 @@ int main()
 
 		wifi_task();
 		vaxi_os_task();
-
-		//usb_uart_write("hello\r\n", 7);
-        //xil_printf("\r\n");
-		//xil_printf("%c", getchar());
-
-		/*if (lcd_is_writing() == FALSE){
-			char rst_buf[2] = {124, 'r'};
-			lcd_write(rst_buf, 2);
-			xil_printf("Reseting LCD\r\n");
-		}*/
 	}
 
 	/* never reached */
