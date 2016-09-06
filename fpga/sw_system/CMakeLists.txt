@@ -42,8 +42,8 @@ set(CMAKE_CXX_COMPILER_WORKS 1)
 add_subdirectory(src/platform)
 add_subdirectory(src/board_rgb_leds)
 add_subdirectory(src/usb_uart)
-add_subdirectory(src/file_loader)
 add_subdirectory(src/web_loader)
+add_subdirectory(src/utils)
 
 project (sw_system C )
 
@@ -51,31 +51,32 @@ project (sw_system C )
 file(GLOB BSP_HEADERS "${CMAKE_SOURCE_DIR}/sdk_workspace/bsp_0/microblaze_0/include/*.h")
 
 # Add sources
-add_executable(sw_system src/lcd.c
-	src/main.c
-	src/pwm.c
-	src/remote.c
-	src/server.c
-	src/tinysh.c
-	src/utils.c
-	src/vaxi_os.c
-	src/wifi.c
-	src/wifi_uart.c
-	src/utils/wifi_utils.c
-	${BSP_HEADERS}
-		src/board_rgb_leds/board_rgb_leds.c src/usb_uart/usb_uart.c src/usb_uart/usb_uart.h src/file_loader/file_loader.h src/file_loader/file_loader.c src/web_loader/web_loader.h src/web_loader/web_loader.c)
+add_executable(sw_system
+		src/main.c
+		src/pwm.c
+		src/lcd.c
+		src/remote.c
+		src/server.c
+		src/tinysh.c
+		src/utils.c
+		src/vaxi_os.c
+		src/wifi.c
+		src/wifi_uart.c
+		${BSP_HEADERS}
+	)
 
 target_link_libraries(sw_system sw_platform)
 target_link_libraries(sw_system board_rgb_leds)
 target_link_libraries(sw_system usb_uart)
-target_link_libraries(sw_system file_loader)
 target_link_libraries(sw_system web_loader)
+target_link_libraries(sw_system utils)
 
 
 # Directories
 include_directories(sw_system
 		sdk_workspace/bsp_0/microblaze_0/include
 		src/board_rgb_leds
+		src/utils
 		src
 	)
 link_directories(sw_system sdk_workspace/bsp_0/microblaze_0/lib)

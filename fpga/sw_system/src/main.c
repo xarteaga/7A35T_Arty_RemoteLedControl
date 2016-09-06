@@ -1,45 +1,11 @@
-/******************************************************************************
-*
-* Copyright (C) 2009 - 2014 Xilinx, Inc.  All rights reserved.
-*
-* Permission is hereby granted, free of charge, to any person obtaining a copy
-* of this software and associated documentation files (the "Software"), to deal
-* in the Software without restriction, including without limitation the rights
-* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-* copies of the Software, and to permit persons to whom the Software is
-* furnished to do so, subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included in
-* all copies or substantial portions of the Software.
-*
-* Use of the Software is limited solely to applications:
-* (a) running on a Xilinx device, or
-* (b) that interact with a Xilinx device through a bus or interconnect.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-* XILINX  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-* WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF
-* OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-* SOFTWARE.
-*
-* Except as contained in this notice, the name of the Xilinx shall not be used
-* in advertising or otherwise to promote the sale, use or other dealings in
-* this Software without prior written authorization from Xilinx.
-*
-******************************************************************************/
 
 #include <stdio.h>
-
-#include "xparameters.h"
 
 #include "netif/xadapter.h"
 
 #include "platform/platform.h"
 #include "platform/platform_config.h"
 
-#include "lwip/tcp.h"
 #include "lwip/tcp_impl.h"
 #include "lwip/init.h"
 
@@ -54,16 +20,19 @@
 #include "usb_uart/usb_uart.h"
 #include "web_loader/web_loader.h"
 #include "board_rgb_leds_resource.h"
+#include "colors.h"
 
 extern massive_pwm_t *pwm;
 
 resource_t resources[] = {
-		{ "/board_rgb_leds/freq", board_rgb_leds_resource_set_frequency},
-        { "/board_rgb_leds/color", board_rgb_leds_resource_set_color},
-        { "/board_rgb_leds/offset", board_rgb_leds_resource_set_offset},
-		{ "/pwm/", pwm_callback },
-        { "/lcd", lcd_callback },
-        { "/", web_loader_resource },
+		{ "/board_rgb_leds/freq", (callback_t*) board_rgb_leds_resource_set_frequency},
+        { "/board_rgb_leds/color", (callback_t*) board_rgb_leds_resource_set_color},
+        { "/board_rgb_leds/offset", (callback_t*) board_rgb_leds_resource_set_offset},
+        { "/board_rgb_leds/auto", (callback_t*)board_rgb_leds_resource_set_auto},
+        { "/board_rgb_leds/manual", (callback_t*)board_rgb_leds_resource_set_auto},
+		{ "/pwm/", (callback_t*) pwm_callback },
+        //{ "/lcd", lcd_callback },
+        { "/", (callback_t*) web_loader_resource },
 		{ 0, 0}
 };
 
@@ -88,12 +57,7 @@ extern volatile int TcpSlowTmrFlag;
 static struct netif server_netif;
 struct netif *echo_netif;
 
-int transfer_data() {
-	return 0;
-}
-
-void
-print_ip(char *msg, struct ip_addr *ip) {
+void print_ip(char *msg, struct ip_addr *ip) {
 	print(msg);
 	xil_printf("%d.%d.%d.%d\n\r", ip4_addr1(ip), ip4_addr2(ip),
 			ip4_addr3(ip), ip4_addr4(ip));
@@ -113,6 +77,7 @@ int main()
 	/* the mac address of the board. this should be unique per board */
 	unsigned char mac_ethernet_address[] =
 	{ 0x00, 0x0a, 0x35, 0x00, 0x01, 0x02 };
+
 
 	echo_netif = &server_netif;
 
@@ -147,14 +112,14 @@ int main()
 	netif_set_default(echo_netif);
 
     /* start the application (web server, rxtest, txtest, etc..) */
-    wifi_uart_init();
+    //wifi_uart_init();
     usb_uart_init();
     http_server_start(80);
     remote_init ();
-    lcd_init();
-    wifi_init();
-    vaxi_os_init();
-    board_rgb_leds_init(1);
+    //lcd_init();
+    //wifi_init();
+    //vaxi_os_init();
+    board_rgb_leds_init(50);
 
 	/* now enable interrupts */
 	xil_printf("Enabling interrupts...\r\n");
@@ -193,27 +158,13 @@ int main()
 
 
 	pwm->period = ((83333334)>>8)/100;
-	pwm->channels[0].blue = 0;
-	pwm->channels[0].green = 0;
-	pwm->channels[0].red = 32;
-	pwm->channels[0].offset = 0;
-	pwm->channels[1].blue = 0;
-	pwm->channels[1].green = 0;
-	pwm->channels[1].red = 0;
-	pwm->channels[1].offset = 64;
-	pwm->channels[2].blue = 0;
-	pwm->channels[2].green = 0;
-	pwm->channels[2].red = 0;
-	pwm->channels[2].offset = 128;
-	pwm->channels[3].blue = 0;
-	pwm->channels[3].green = 0;
-	pwm->channels[3].red = 0;
-	pwm->channels[3].offset = 192;
 
+	//lcd_write("    [VaXiOS]", 1, 12);
+	//lcd_write("    Welcome!", 2, 12);
+    color_hsl_t hsl = {0.25, 0.5, 0.5};
 
-
-	lcd_write("    [VaXiOS]", 1, 12);
-	lcd_write("    Welcome!", 2, 12);
+    color_rgb_t rgb =  colors_convert_hsl_rgb(hsl);
+    printf("RGB: %d %d %d\r\n", rgb.r, rgb.g, rgb.b);
 
 	/* receive and process packets */
 	while (1) {
@@ -226,15 +177,17 @@ int main()
 			TcpSlowTmrFlag = 0;
 		}
 		xemacif_input(echo_netif);
-		transfer_data();
 
-		remote_task();
+		//remote_task();
 
-		wifi_uart_task();
+		//wifi_uart_task();
         usb_uart_task();
 
-		wifi_task();
-		vaxi_os_task();
+		//wifi_task();
+		//vaxi_os_task();
+        board_rgb_leds_task();
+
+        //xil_printf("probe\r\n");
 	}
 
 	/* never reached */

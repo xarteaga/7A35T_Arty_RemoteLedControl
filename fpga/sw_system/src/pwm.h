@@ -27,6 +27,6 @@ typedef struct {
 	led_t channels[PWM_NUM_CHANNELS];
 } massive_pwm_t;
 
-void *pwm_callback(request_t *req, response_t *res);
+callback_t *pwm_callback(request_t *req, response_t *res);
 
 #endif /* PWM_H_ */

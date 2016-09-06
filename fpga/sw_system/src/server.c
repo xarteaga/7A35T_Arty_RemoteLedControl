@@ -1,12 +1,6 @@
 #include <inttypes.h>
 #include <string.h>
 #include <stdio.h>
-#include <string.h>
-#include <unistd.h>
-#include <stdarg.h>
-
-#include <sys/types.h>
-
 
 #include "server.h"
 
@@ -15,7 +9,9 @@
 
 #define VERBOSE
 
-extern resource_t resources[];
+extern resource_t resources[16];
+
+char server_response_buffer[2048];
 
 void print_app_header()
 {
@@ -24,7 +20,7 @@ void print_app_header()
 	xil_printf("Compiled time: %s\n\r", __TIME__);
 }
 
-int readMethodFromBuffer (char * buffer, uint16_t size, uint8_t *method) {
+int readMethodFromBuffer (char * buffer, uint16_t size, u32 *method) {
 	uint16_t offset = 0;
 
 	while (buffer[offset] != ' ' && offset < size) {
@@ -44,7 +40,7 @@ int readMethodFromBuffer (char * buffer, uint16_t size, uint8_t *method) {
 }
 
 int readPathFromBuffer(char * buffer, uint16_t size, int offset, char *path) {
-	int pathLen = 0;
+	size_t pathLen = 0;
 	int begin = offset;
 
 	while (buffer[offset] != '?' && buffer[offset] != ' ' && offset < size) {
@@ -66,15 +62,19 @@ int readPathFromBuffer(char * buffer, uint16_t size, int offset, char *path) {
 	return ++offset;
 }
 
-int readParamFromBuffer(char * buffer, uint16_t size, int offset, param_t *param){
-	int begin_name = offset, len_name, begin_value, len_value;
+int readParamFromBuffer(char * buffer, size_t size, int offset, param_t *param){
+	size_t begin_name = (size_t)offset, begin_value, len_value;
+    size_t len_name = 0;
+
+    if (offset < -1)
+        return -1;
 
 	while (buffer[offset] != '=' && offset < size) {
 		++offset;
 	}
 
 	len_name = offset - begin_name;
-	begin_value = offset + 1;
+	begin_value = (size_t)offset + 1;
 
 	if (offset == size)
 		return -1;
@@ -118,15 +118,18 @@ int readParamsFromBuffer(char * buffer, uint16_t size, int offset, param_t *para
 	return ++offset;
 }
 
-int readHeaderFromBuffer(char * buffer, uint16_t size, uint16_t offset, header_t *header){
-	int begin_name = offset, len_name, begin_value, len_value;
+int readHeaderFromBuffer(char * buffer, size_t size, int offset, header_t *header){
+	size_t begin_name = (size_t)offset, len_name, begin_value, len_value;
+
+    if (offset == -1)
+        return -1;
 
 	while (buffer[offset] != ':' && offset < size) {
 		++offset;
 	}
 
 	len_name = offset - begin_name;
-	begin_value = offset + 2;
+	begin_value = (size_t)offset + 2;
 
 	if (offset == size)
 		return -1;
@@ -148,7 +151,7 @@ int readHeaderFromBuffer(char * buffer, uint16_t size, uint16_t offset, header_t
 	return ++offset;
 }
 
-int readHeadersFromBuffer(char * buffer, uint16_t size, uint16_t offset, header_t *headers){
+int readHeadersFromBuffer(char * buffer, uint16_t size, int offset, header_t *headers){
 
 	uint8_t count = 0;
 
@@ -196,37 +199,34 @@ int parse_request(char *buffer, uint16_t len, request_t *req) {
 }
 
 int send_response (struct tcp_pcb *tpcb, response_t *res) {
-	int n, err, i;
-	char buffer [1024];
+	int i;
+    u16 n;
 
 	if (res->code == RES_OK) {
-		n = sprintf(buffer, "HTTP 200 OK\r\nContent-Length: %u\r\n", (unsigned int) res->content_length);
+		n = (u16) sprintf(server_response_buffer, "HTTP 200 OK\r\nContent-Length: %u\r\n", (unsigned int) res->content_length);
 	} else /*if (res->code == RES_REDIRECT)*/{
-		n = sprintf(buffer, "HTTP/1.1 307 Temporary Redirect\r\n");
+		n = (u16) sprintf(server_response_buffer, "HTTP/1.1 307 Temporary Redirect\r\n");
 	}
 
 	for(i = 0; strlen(res->headers[i].name) > 0; i++){
-		n += sprintf(buffer + n, "%s : %s\r\n", res->headers[i].name, res->headers[i].value);
+		n += sprintf(server_response_buffer + n, "%s : %s\r\n", res->headers[i].name, res->headers[i].value);
 	}
-	n += sprintf(buffer + n, "\r\n");
-    xil_printf(buffer);
+	n += sprintf(server_response_buffer + n, "\r\n");
+    //xil_printf(buffer);
 
 	if (tcp_sndbuf(tpcb) > n) {
-			err = tcp_write(tpcb, buffer, n, 1);
+        (void) tcp_write(tpcb, server_response_buffer, n, 1);
 	} else {
 		xil_printf("no space in tcp_sndbuf\n\r");
 		return -1;
 	}
 
 	if (tcp_sndbuf(tpcb) > n) {
-		err = tcp_write(tpcb, res->content, res->content_length, 1);
-		n += res->content_length;
+        (void) tcp_write(tpcb, res->content, res->content_length, 1);
 	} else {
 		xil_printf("no space in tcp_sndbuf\n\r");
 		return -1;
 	}
-
-
 
 	return 0;
 }
@@ -236,9 +236,15 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 {
 	request_t req;
 	response_t res;
-	memset(&req, 0, sizeof(request_t));
 	char strbuf[1024];
 	uint32_t i;
+
+    /* If error, return */
+    if (err!= ERR_OK)
+        return  err;
+
+    /* Initialize response */
+    memset(&req, 0, sizeof(request_t));
 
 	/* do not read the packet if we are not in ESTABLISHED state */
 	if (!p) {
@@ -250,10 +256,11 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 	/* indicate that the packet has been received */
 	tcp_recved(tpcb, p->len);
 
+    /* Copy payload */
 	memcpy(strbuf, p->payload, p->len);
 	strbuf[p->len] = 0;
-	//printf("[ BEGIN size = %d ]%s[ END ]\r\n\r\n", p->len, strbuf);
 
+    /* Get request */
 	parse_request(strbuf, p->len, &req);
 
 	/* Find server entry from requested URL */
@@ -263,24 +270,21 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 		}
 	}
 
+    /* Default response */
+	res.code = RES_BAD_REQUEST;
+    res.content = "The requested URL is not implemented\r\n";
 
-    memset(&res, 0, sizeof(response_t)) ;
-	res.code = RES_OK;
-	res.content = "Hello World!\r\n";
+
 	if (resources[i].callback != 0){
-		resources[i].callback(&req, &res);
-	} else {
-        xil_printf("URL not implemented: %s, redirecting...\r\n", req.url);
-        res.code = RES_REDIRECT;
-		strcpy(res.headers[0].name, "Location");
-		strcpy(res.headers[0].value, "https://dl.dropboxusercontent.com/u/44070581/CoolLights/index.html");
-        res.content = "https://dl.dropboxusercontent.com/u/44070581/CoolLights/index.html";
+        /* Run callback */
+		((callback_t)resources[i].callback)(&req, &res);
 	}
-	res.content_length = strlen(res.content);
+	res.content_length = (u16) strlen(res.content);
 
 	/* Set Response */
 	send_response(tpcb, &res);
 
+    /* Close socket */
 	tcp_close(tpcb);
 	tcp_recv(tpcb, NULL);
 

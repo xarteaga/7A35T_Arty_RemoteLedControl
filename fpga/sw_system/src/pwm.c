@@ -16,7 +16,7 @@
 #define VERBOSE
 
 typedef enum {RED, GREEN, BLUE, RGB} colors_t;
-massive_pwm_t *pwm = XPAR_MASSIVE_PWM_1_S00_AXI_BASEADDR;
+massive_pwm_t *pwm = (massive_pwm_t *)XPAR_MASSIVE_PWM_1_S00_AXI_BASEADDR;
 
 char json_buff[1024];
 
@@ -38,7 +38,7 @@ char* getJSON () {
 	return json_buff;
 }
 
-void *pwm_callback(request_t *req, response_t *res){
+callback_t *pwm_callback(request_t *req, response_t *res){
 	char *path = req->url;
 	char *argv[10];
 	int argn = path2args(path, argv);

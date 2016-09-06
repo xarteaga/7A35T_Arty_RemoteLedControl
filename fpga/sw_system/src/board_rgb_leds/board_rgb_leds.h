@@ -21,12 +21,20 @@ typedef struct {
     board_rgb_led_t channels[BOARD_RGB_LEDS_N];
 } board_rgb_leds_t;
 
+typedef enum {
+    BOARD_RGB_LEDS_MODE_UNDEFINED,
+    BOARD_RGB_LEDS_MODE_MANUAL,
+    BOARD_RGB_LEDS_MODE_AUTO
+} board_rgb_leds_mode_t;
+
 /* Function prototypes */
 void board_rgb_leds_init(u32 f);
 board_rgb_led_t* board_rgb_leds_get_channel(u32 chan);
 void board_rgb_leds_set_freq(u32 f);
-void board_rgb_leds_cmd (int argc, char ** argv);
 int board_rgb_leds_set_hex_color (u32 ch, u32 hex);
 int board_rgb_leds_set_offset(u32 ch, u32 offset);
+int board_rgb_leds_set_float(u8 ch, float r, float g, float b);
+void board_rgb_leds_set_mode (board_rgb_leds_mode_t m);
+void board_rgb_leds_task();
 
 #endif //SW_SYSTEM_BOARD_RGB_LEDS_H

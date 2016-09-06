@@ -7,7 +7,7 @@
 #include "server.h"
 #include "utils.h"
 
-char board_rgb_leds_json_buff[2048];
+char board_rgb_leds_json_buff[1024];
 char board_rgb_leds_freq_str[32];
 
 char *board_rgb_leds_json () {
@@ -36,7 +36,7 @@ char *board_rgb_leds_json () {
     return board_rgb_leds_json_buff;
 }
 
-void *board_rgb_leds_resource_set_frequency (request_t *req, response_t *res) {
+callback_t *board_rgb_leds_resource_set_frequency (request_t *req, response_t *res) {
     char *argv[10];
     int argn = path2args(req->url, argv);
     int err = 1;
@@ -74,7 +74,7 @@ void *board_rgb_leds_resource_set_frequency (request_t *req, response_t *res) {
     return NULL;
 }
 
-void *board_rgb_leds_resource_set_color(request_t *req, response_t *res){
+callback_t *board_rgb_leds_resource_set_color(request_t *req, response_t *res){
     char *argv[10];
     int argn = path2args(req->url, argv);
     int err = 0;
@@ -125,7 +125,7 @@ void *board_rgb_leds_resource_set_color(request_t *req, response_t *res){
     return NULL;
 }
 
-void *board_rgb_leds_resource_set_offset(request_t *req, response_t *res){
+callback_t *board_rgb_leds_resource_set_offset(request_t *req, response_t *res){
     char *argv[10];
     int argn = path2args(req->url, argv);
     int err = 0;
@@ -133,7 +133,7 @@ void *board_rgb_leds_resource_set_offset(request_t *req, response_t *res){
     u32 chan;
 
     /* Check format */
-    if (argn < 4 ) {
+    if (argn != 4 ) {
         err = -1;
     }
 
@@ -168,6 +168,37 @@ void *board_rgb_leds_resource_set_offset(request_t *req, response_t *res){
     if (err < 0) {
         res->code = RES_BAD_REQUEST;
         res->content = "Bad number of arguments. Usage: /board_rgb_leds/offset/$channel$/$offset 0 - 255$\r\n";
+    } else {
+        res->code = RES_OK;
+        res->content = board_rgb_leds_json();
+    }
+
+    return NULL;
+}
+
+callback_t *board_rgb_leds_resource_set_auto(request_t *req, response_t *res){
+    char *argv[10];
+    int argn = path2args(req->url, argv);
+    int err = 0;
+
+    /* Check format */
+    if (argn != 2 ) {
+        err = -1;
+    }
+
+    /* Parse channel */
+    if (err >= 0) {
+        if (strcmp(argv[1], "auto") == 0) {
+            board_rgb_leds_set_mode(BOARD_RGB_LEDS_MODE_AUTO);
+        } else {
+            board_rgb_leds_set_mode(BOARD_RGB_LEDS_MODE_MANUAL);
+        }
+    }
+
+    /* Check for errors */
+    if (err < 0) {
+        res->code = RES_BAD_REQUEST;
+        res->content = "Bad number of arguments. Usage: /board_rgb_leds/{auto|manual}\r\n";
     } else {
         res->code = RES_OK;
         res->content = board_rgb_leds_json();
