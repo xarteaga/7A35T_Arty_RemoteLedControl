@@ -11,6 +11,8 @@
 #include "colors.h"
 #include "tinysh.h"
 #include "scheduler.h"
+#include "server.h"
+#include "rgb_leds_resource.h"
 
 /* Variables */
 static rgb_leds_t *rgb_leds = RGB_LEDS_BASE_ADDR;
@@ -27,6 +29,14 @@ static tinysh_cmd_t  tinysh_rgb_leds = {0, "rgb_leds", "WiFi Controller Reset", 
 /* Scheduler entry */
 static scheduler_entry_t leds_rgb_scheduler_entry = {0, 1000, rgb_leds_task};
 
+/* Resource entries */
+static resource_t rgb_leds_r1 = { "/rgb_leds/freq", (callback_t*) rgb_leds_resource_set_frequency};
+static resource_t rgb_leds_r2 = { "/rgb_leds/color", (callback_t*) rgb_leds_resource_set_color};
+static resource_t rgb_leds_r3 = { "/rgb_leds/offset", (callback_t*) rgb_leds_resource_set_offset};
+static resource_t rgb_leds_r4 = { "/rgb_leds/auto", (callback_t*)rgb_leds_resource_set_mode};
+static resource_t rgb_leds_r5 = { "/rgb_leds/manual", (callback_t*)rgb_leds_resource_set_mode};
+static resource_t rgb_leds_r6 = { "/rgb_leds/period", (callback_t*)rgb_leds_resource_set_period};
+
 void rgb_leds_init(u32 f) {
     /* Set all zeros */
     memset(rgb_leds, 0, sizeof(rgb_leds_t));
@@ -42,6 +52,14 @@ void rgb_leds_init(u32 f) {
 
     /* Add scheduler entry */
     scheduler_add_entry(&leds_rgb_scheduler_entry);
+
+    /* Add server entries */
+    server_add_resource(&rgb_leds_r1);
+    server_add_resource(&rgb_leds_r2);
+    server_add_resource(&rgb_leds_r3);
+    server_add_resource(&rgb_leds_r4);
+    server_add_resource(&rgb_leds_r5);
+    server_add_resource(&rgb_leds_r6);
 }
 
 void rgb_leds_set_mode (rgb_leds_mode_t m){
@@ -160,8 +178,6 @@ void rgb_leds_auto() {
 }
 
 void rgb_leds_task(u32 elapsed) {
-    xil_printf("echo %d\r\n", elapsed);
-
     switch(rgb_leds_mode){
         case RGB_LEDS_MODE_UNDEFINED:
             rgb_leds_mode = RGB_LEDS_MODE_MANUAL;

@@ -9,9 +9,20 @@
 
 #define VERBOSE
 
-extern resource_t resources[16];
+#define SERVER_RESOURCE_NUM_MAX 16
+
+static resource_t *server_resource_list[16];
+static u32 server_resources_count = 0;
 
 char server_response_buffer[2048];
+
+void server_add_resource(resource_t *r) {
+	if (server_resources_count < SERVER_RESOURCE_NUM_MAX) {
+		server_resource_list[server_resources_count] = r;
+		server_resources_count++;
+	}
+
+}
 
 void print_app_header()
 {
@@ -264,8 +275,8 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
 	parse_request(strbuf, p->len, &req);
 
 	/* Find server entry from requested URL */
-	for (i=0; resources[i].url != 0; i++){
-		if (strncmp(resources[i].url, req.url, strlen(resources[i].url)) == 0) {
+	for (i=0; i < server_resources_count; i++){
+		if (strncmp(server_resource_list[i]->url, req.url, strlen(server_resource_list[i]->url)) == 0) {
 			break;
 		}
 	}
@@ -275,9 +286,9 @@ err_t recv_callback(void *arg, struct tcp_pcb *tpcb,
     res.content = "The requested URL is not implemented\r\n";
 
 
-	if (resources[i].callback != 0){
+	if (i < server_resources_count){
         /* Run callback */
-		((callback_t)resources[i].callback)(&req, &res);
+		((callback_t)server_resource_list[i]->callback)(&req, &res);
 	}
 	res.content_length = (u16) strlen(res.content);
 

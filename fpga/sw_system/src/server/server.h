@@ -47,5 +47,6 @@ typedef struct {
 } resource_t;
 
 int http_server_start(uint16_t port);
+void server_add_resource(resource_t *r);
 
 #endif // _SERVER_H_

@@ -7,6 +7,7 @@
 
 #include "../server/server.h"
 
+void web_loader_init();
 void *web_loader_resource(request_t *req, response_t *res);
 
 #endif //SW_SYSTEM_WEB_LOADER_H

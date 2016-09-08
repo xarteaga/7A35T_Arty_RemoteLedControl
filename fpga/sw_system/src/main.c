@@ -16,19 +16,6 @@
 #include "rgb_leds/rgb_leds.h"
 #include "usb_uart/usb_uart.h"
 #include "web_loader/web_loader.h"
-#include "rgb_leds_resource.h"
-#include "colors.h"
-
-resource_t resources[] = {
-		{ "/rgb_leds/freq", (callback_t*) rgb_leds_resource_set_frequency},
-        { "/rgb_leds/color", (callback_t*) rgb_leds_resource_set_color},
-        { "/rgb_leds/offset", (callback_t*) rgb_leds_resource_set_offset},
-        { "/rgb_leds/auto", (callback_t*)rgb_leds_resource_set_mode},
-        { "/rgb_leds/manual", (callback_t*)rgb_leds_resource_set_mode},
-        { "/rgb_leds/period", (callback_t*)rgb_leds_resource_set_period},
-        { "/", (callback_t*) web_loader_resource },
-		{ 0, 0}
-};
 
 #if LWIP_DHCP==1
 #include "lwip/dhcp.h"
@@ -115,6 +102,7 @@ int main()
     //wifi_init();
     //vaxi_os_init();
     rgb_leds_init(50);
+    web_loader_init();
 
 	/* now enable interrupts */
 	xil_printf("Enabling interrupts...\r\n");
@@ -171,6 +159,7 @@ int main()
 		//wifi_uart_task();
         usb_uart_task();
 
+        //mb_sleep();
 		//wifi_task();
 		//vaxi_os_task();
         //rgb_leds_task();
