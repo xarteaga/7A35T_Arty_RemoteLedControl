@@ -13,7 +13,6 @@
 #include "lwip/err.h"
 #include "lwip/tcp.h"
 
-#include "wifi.h"
 #include "remote.h"
 #include "usb_uart/usb_uart.h"
 

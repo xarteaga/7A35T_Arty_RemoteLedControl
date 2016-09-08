@@ -40,10 +40,12 @@ set(CMAKE_CXX_COMPILER_WORKS 1)
 
 # Add subdirectories
 add_subdirectory(src/platform)
-add_subdirectory(src/board_rgb_leds)
+add_subdirectory(src/rgb_leds)
 add_subdirectory(src/usb_uart)
 add_subdirectory(src/web_loader)
 add_subdirectory(src/utils)
+add_subdirectory(src/scheduler)
+add_subdirectory(src/server)
 
 project (sw_system C )
 
@@ -53,30 +55,28 @@ file(GLOB BSP_HEADERS "${CMAKE_SOURCE_DIR}/sdk_workspace/bsp_0/microblaze_0/incl
 # Add sources
 add_executable(sw_system
 		src/main.c
-		src/pwm.c
-		src/lcd.c
 		src/remote.c
-		src/server.c
 		src/tinysh.c
 		src/utils.c
 		src/vaxi_os.c
-		src/wifi.c
-		src/wifi_uart.c
 		${BSP_HEADERS}
-	)
+		)
 
 target_link_libraries(sw_system sw_platform)
-target_link_libraries(sw_system board_rgb_leds)
+target_link_libraries(sw_system rgb_leds)
 target_link_libraries(sw_system usb_uart)
 target_link_libraries(sw_system web_loader)
 target_link_libraries(sw_system utils)
+target_link_libraries(sw_system scheduler)
+target_link_libraries(sw_system server)
 
 
 # Directories
 include_directories(sw_system
 		sdk_workspace/bsp_0/microblaze_0/include
-		src/board_rgb_leds
+        src/rgb_leds
 		src/utils
+		src/scheduler
 		src
 	)
 link_directories(sw_system sdk_workspace/bsp_0/microblaze_0/lib)

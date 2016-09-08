@@ -1,37 +1,31 @@
-
+/* Standard C includes */
 #include <stdio.h>
 
+/* Xilinx Includes */
 #include "netif/xadapter.h"
-
-#include "platform/platform.h"
-#include "platform/platform_config.h"
-
 #include "lwip/tcp_impl.h"
 #include "lwip/init.h"
 
-#include "server.h"
-#include "pwm.h"
-#include "lcd.h"
-#include "wifi_uart.h"
-#include "wifi.h"
+/* Project includes */
+#include "platform/platform.h"
+#include "platform/platform_config.h"
+#include "scheduler.h"
+#include "server/server.h"
 #include "vaxi_os.h"
 #include "remote.h"
-#include "board_rgb_leds/board_rgb_leds.h"
+#include "rgb_leds/rgb_leds.h"
 #include "usb_uart/usb_uart.h"
 #include "web_loader/web_loader.h"
-#include "board_rgb_leds_resource.h"
+#include "rgb_leds_resource.h"
 #include "colors.h"
 
-extern massive_pwm_t *pwm;
-
 resource_t resources[] = {
-		{ "/board_rgb_leds/freq", (callback_t*) board_rgb_leds_resource_set_frequency},
-        { "/board_rgb_leds/color", (callback_t*) board_rgb_leds_resource_set_color},
-        { "/board_rgb_leds/offset", (callback_t*) board_rgb_leds_resource_set_offset},
-        { "/board_rgb_leds/auto", (callback_t*)board_rgb_leds_resource_set_auto},
-        { "/board_rgb_leds/manual", (callback_t*)board_rgb_leds_resource_set_auto},
-		{ "/pwm/", (callback_t*) pwm_callback },
-        //{ "/lcd", lcd_callback },
+		{ "/rgb_leds/freq", (callback_t*) rgb_leds_resource_set_frequency},
+        { "/rgb_leds/color", (callback_t*) rgb_leds_resource_set_color},
+        { "/rgb_leds/offset", (callback_t*) rgb_leds_resource_set_offset},
+        { "/rgb_leds/auto", (callback_t*)rgb_leds_resource_set_mode},
+        { "/rgb_leds/manual", (callback_t*)rgb_leds_resource_set_mode},
+        { "/rgb_leds/period", (callback_t*)rgb_leds_resource_set_period},
         { "/", (callback_t*) web_loader_resource },
 		{ 0, 0}
 };
@@ -42,7 +36,6 @@ resource_t resources[] = {
 
 /* defined by each RAW mode application */
 void print_app_header();
-int transfer_data();
 
 /* missing declaration in lwIP */
 void lwip_init();
@@ -112,6 +105,8 @@ int main()
 	netif_set_default(echo_netif);
 
     /* start the application (web server, rxtest, txtest, etc..) */
+	scheduler_init();
+
     //wifi_uart_init();
     usb_uart_init();
     http_server_start(80);
@@ -119,7 +114,7 @@ int main()
     //lcd_init();
     //wifi_init();
     //vaxi_os_init();
-    board_rgb_leds_init(50);
+    rgb_leds_init(50);
 
 	/* now enable interrupts */
 	xil_printf("Enabling interrupts...\r\n");
@@ -156,15 +151,8 @@ int main()
 
 	print_ip_settings(&ipaddr, &netmask, &gw);
 
-
-	pwm->period = ((83333334)>>8)/100;
-
 	//lcd_write("    [VaXiOS]", 1, 12);
 	//lcd_write("    Welcome!", 2, 12);
-    color_hsl_t hsl = {0.25, 0.5, 0.5};
-
-    color_rgb_t rgb =  colors_convert_hsl_rgb(hsl);
-    printf("RGB: %d %d %d\r\n", rgb.r, rgb.g, rgb.b);
 
 	/* receive and process packets */
 	while (1) {
@@ -185,7 +173,7 @@ int main()
 
 		//wifi_task();
 		//vaxi_os_task();
-        board_rgb_leds_task();
+        //rgb_leds_task();
 
         //xil_printf("probe\r\n");
 	}

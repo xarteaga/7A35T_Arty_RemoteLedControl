@@ -5,7 +5,7 @@
 #ifndef SW_SYSTEM_WEB_LOADER_H
 #define SW_SYSTEM_WEB_LOADER_H
 
-#include "../server.h"
+#include "../server/server.h"
 
 void *web_loader_resource(request_t *req, response_t *res);
 

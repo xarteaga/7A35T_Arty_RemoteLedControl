@@ -39,6 +39,8 @@
 #include "xil_exception.h"
 #include "lwip/tcp.h"
 #include "xuartlite.h"
+#include "scheduler.h"
+#include "usb_uart.h"
 #ifdef STDOUT_IS_16550
 #include "xuartns550_l.h"
 #endif
@@ -85,7 +87,7 @@ timer_callback()
 }
 
 static XIntc intc;
-extern XUartLite wifi_uart;
+//extern XUartLite wifi_uart;
 extern XUartLite usb_uart;
 
 void platform_setup_interrupts()
@@ -98,9 +100,12 @@ void platform_setup_interrupts()
 	XIntc_Connect(intcp, XPAR_INTC_0_UARTLITE_0_VEC_ID,
 				  (XInterruptHandler)XUartLite_InterruptHandler,
 				  (void *)&usb_uart);
-	XIntc_Connect(intcp, XPAR_INTC_0_UARTLITE_2_VEC_ID,
+	/*XIntc_Connect(intcp, XPAR_INTC_0_UARTLITE_2_VEC_ID,
 				   (XInterruptHandler)XUartLite_InterruptHandler,
-				   (void *)&wifi_uart);
+				   (void *)&wifi_uart);*/
+	XIntc_Connect(intcp, XPAR_MICROBLAZE_0_AXI_INTC_FIT_TIMER_0_INTERRUPT_INTR,
+				  (XInterruptHandler)scheduler_interrupt_handler,
+				  NULL);
 
 	XIntc_Start(intcp, XIN_REAL_MODE);
 
@@ -149,8 +154,9 @@ void platform_setup_interrupts()
 	XIntc_Enable(intcp, XPAR_INTC_0_EMACLITE_0_VEC_ID);
 #endif
 
-	XIntc_Enable(intcp, XPAR_INTC_0_UARTLITE_0_VEC_ID);
+	/*XIntc_Enable(intcp, XPAR_INTC_0_UARTLITE_0_VEC_ID);*/
 	XIntc_Enable(intcp, XPAR_INTC_0_UARTLITE_2_VEC_ID);
+	XIntc_Enable(intcp, XPAR_MICROBLAZE_0_AXI_INTC_FIT_TIMER_0_INTERRUPT_INTR);
 
 }
 

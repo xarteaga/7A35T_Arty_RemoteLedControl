@@ -6,8 +6,6 @@ project (utils C )
 
 # Add sources
 add_library(utils
-			wifi_utils.c
-			wifi_utils.h
 			colors.c
 			colors.h
 		)

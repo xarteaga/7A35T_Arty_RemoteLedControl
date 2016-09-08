@@ -12,7 +12,7 @@
 #include "xparameters.h"
 #include "xuartlite.h"
 
-#include "server.h"
+#include "server/server.h"
 #include "utils.h"
 
 XUartLite lcd_uart;

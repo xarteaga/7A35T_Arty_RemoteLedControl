@@ -2,45 +2,45 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "board_rgb_leds.h"
+#include "rgb_leds.h"
 
-#include "server.h"
+#include "server/server.h"
 #include "utils.h"
 
-char board_rgb_leds_json_buff[1024];
-char board_rgb_leds_freq_str[32];
+char rgb_leds_json_buff[1024];
+char rgb_leds_freq_str[32];
 
-char *board_rgb_leds_json () {
-    uint32_t n, i;
-    board_rgb_led_t *rgb_chan = NULL;
+char *rgb_leds_json () {
+    int n, i;
+    rgb_led_t *rgb_chan = NULL;
 
-    n = sprintf(board_rgb_leds_json_buff, "[");
-    for(i = 0; i < BOARD_RGB_LEDS_N; i++){
+    n = sprintf(rgb_leds_json_buff, "[");
+    for(i = 0; i < RGB_LEDS_N; i++){
         /* Add colon if required */
         if (i!=0){
-            board_rgb_leds_json_buff[n] = ',';
+            rgb_leds_json_buff[n] = ',';
             n++;
         }
 
         /* Get RGB channel */
-        rgb_chan = board_rgb_leds_get_channel(i);
+        rgb_chan = rgb_leds_get_channel((u32)i);
 
         /* Add RGB Channel */
-        n += sprintf(board_rgb_leds_json_buff + n, "{\"offset\": %d, \"r\":%d, \"g\":%d, \"b\":%d}", \
+        n += sprintf(rgb_leds_json_buff + n, "{\"offset\": %d, \"r\":%d, \"g\":%d, \"b\":%d}", \
 				rgb_chan->offset, rgb_chan->red, rgb_chan->green, rgb_chan->blue);
     }
 
-    n += sprintf(board_rgb_leds_json_buff + n, "]");
+    (void) sprintf(rgb_leds_json_buff + n, "]");
 
 
-    return board_rgb_leds_json_buff;
+    return rgb_leds_json_buff;
 }
 
-callback_t *board_rgb_leds_resource_set_frequency (request_t *req, response_t *res) {
+callback_t *rgb_leds_resource_set_frequency (request_t *req, response_t *res) {
     char *argv[10];
     int argn = path2args(req->url, argv);
     int err = 1;
-    float f;
+    float f = 0.0;
 
     /* Check format */
     if (argn < 3 ) {
@@ -57,29 +57,29 @@ callback_t *board_rgb_leds_resource_set_frequency (request_t *req, response_t *r
             err = -1;
         } else {
             /* Set frequency */
-            board_rgb_leds_set_freq((u32) f);
+            rgb_leds_set_freq((u32) f);
         }
     }
 
     if (err < 0) {
         res->code = RES_BAD_REQUEST;
-        res->content = "Bad number of arguments. Usage: /board_rgb_leds/freq/$Freq. in Hz$\r\n";
+        res->content = "Bad number of arguments. Usage: /rgb_leds/freq/$Freq. in Hz$\r\n";
     } else {
-        sprintf(board_rgb_leds_freq_str, "%d Hz\r\n", (u32)f);
+        sprintf(rgb_leds_freq_str, "%d Hz\r\n", (int)f);
 
         res->code = RES_OK;
-        res->content = board_rgb_leds_freq_str;
+        res->content = rgb_leds_freq_str;
     }
 
     return NULL;
 }
 
-callback_t *board_rgb_leds_resource_set_color(request_t *req, response_t *res){
+callback_t *rgb_leds_resource_set_color(request_t *req, response_t *res){
     char *argv[10];
     int argn = path2args(req->url, argv);
     int err = 0;
-    u32 hex;
-    u32 chan;
+    int hex = 0;
+    int chan = 0;
 
     /* Check format */
     if (argn < 4 ) {
@@ -110,27 +110,27 @@ callback_t *board_rgb_leds_resource_set_color(request_t *req, response_t *res){
 
     /* Set frequency */
     if (err >= 0) {
-        err = board_rgb_leds_set_hex_color(chan, hex);
+        err = rgb_leds_set_hex_color((u32)chan, (u32)hex);
     }
 
     /* Check for errors */
     if (err < 0) {
         res->code = RES_BAD_REQUEST;
-        res->content = "Bad number of arguments. Usage: /board_rgb_leds/color/$channel$/$hex. code$\r\n";
+        res->content = "Bad number of arguments. Usage: /rgb_leds/color/$channel$/$hex. code$\r\n";
     } else {
         res->code = RES_OK;
-        res->content = board_rgb_leds_json();
+        res->content = rgb_leds_json();
     }
 
     return NULL;
 }
 
-callback_t *board_rgb_leds_resource_set_offset(request_t *req, response_t *res){
+callback_t *rgb_leds_resource_set_offset(request_t *req, response_t *res){
     char *argv[10];
     int argn = path2args(req->url, argv);
     int err = 0;
-    u32 offset;
-    u32 chan;
+    int offset = 0;
+    int chan = 0;
 
     /* Check format */
     if (argn != 4 ) {
@@ -161,22 +161,22 @@ callback_t *board_rgb_leds_resource_set_offset(request_t *req, response_t *res){
 
     /* Set frequency */
     if (err >= 0) {
-        err = board_rgb_leds_set_offset(chan, offset);
+        err = rgb_leds_set_offset((u32)chan, (u32)offset);
     }
 
     /* Check for errors */
     if (err < 0) {
         res->code = RES_BAD_REQUEST;
-        res->content = "Bad number of arguments. Usage: /board_rgb_leds/offset/$channel$/$offset 0 - 255$\r\n";
+        res->content = "Bad number of arguments. Usage: /rgb_leds/offset/$channel$/$offset 0 - 255$\r\n";
     } else {
         res->code = RES_OK;
-        res->content = board_rgb_leds_json();
+        res->content = rgb_leds_json();
     }
 
     return NULL;
 }
 
-callback_t *board_rgb_leds_resource_set_auto(request_t *req, response_t *res){
+callback_t *rgb_leds_resource_set_mode(request_t *req, response_t *res){
     char *argv[10];
     int argn = path2args(req->url, argv);
     int err = 0;
@@ -189,19 +189,51 @@ callback_t *board_rgb_leds_resource_set_auto(request_t *req, response_t *res){
     /* Parse channel */
     if (err >= 0) {
         if (strcmp(argv[1], "auto") == 0) {
-            board_rgb_leds_set_mode(BOARD_RGB_LEDS_MODE_AUTO);
+            rgb_leds_set_mode(RGB_LEDS_MODE_AUTO);
         } else {
-            board_rgb_leds_set_mode(BOARD_RGB_LEDS_MODE_MANUAL);
+            rgb_leds_set_mode(RGB_LEDS_MODE_MANUAL);
         }
     }
 
     /* Check for errors */
     if (err < 0) {
         res->code = RES_BAD_REQUEST;
-        res->content = "Bad number of arguments. Usage: /board_rgb_leds/{auto|manual}\r\n";
+        res->content = "Bad number of arguments. Usage: /rgb_leds/{auto|manual}\r\n";
     } else {
         res->code = RES_OK;
-        res->content = board_rgb_leds_json();
+        res->content = rgb_leds_json();
+    }
+
+    return NULL;
+}
+callback_t *rgb_leds_resource_set_period(request_t *req, response_t *res){
+    char *argv[10];
+    int argn = path2args(req->url, argv);
+    int err = 0;
+    float temp;
+
+    /* Check format */
+    if (argn != 3 ) {
+        err = -1;
+    }
+
+    /* Parse period */
+    if (err >= 0) {
+        err = sscanf(argv[2], "%f", &temp);
+        if (err == 1) {
+            rgb_leds_auto_period((u32)(1000.0*temp));
+        } else {
+            err = -1;
+        }
+    }
+
+    /* Check for errors */
+    if (err < 0) {
+        res->code = RES_BAD_REQUEST;
+        res->content = "Bad number of arguments. Usage: /rgb_leds/period/{seconds}\r\n";
+    } else {
+        res->code = RES_OK;
+        res->content = rgb_leds_json();
     }
 
     return NULL;

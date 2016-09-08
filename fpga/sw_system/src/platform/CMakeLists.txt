@@ -12,3 +12,5 @@ add_library(sw_platform
 
 # Include Directories
 include_directories(sw_platform ../../sdk_workspace/bsp_0/microblaze_0/include)
+include_directories(sw_platform ../scheduler)
+include_directories(sw_platform ../usb_uart)

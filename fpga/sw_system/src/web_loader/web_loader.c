@@ -6,7 +6,7 @@
 
 #include "web_loader.h"
 #include "web_loader_data.h"
-#include "../server.h"
+#include "../server/server.h"
 
 void web_loader_init() {
 

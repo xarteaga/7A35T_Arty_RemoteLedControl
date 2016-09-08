@@ -1,17 +1,16 @@
 
 #include <stdio.h>
-#include <string.h>
 
-#include "board_rgb_leds.h"
+#include "rgb_leds.h"
 #include "remote.h"
 
-void board_rgb_leds_cmd (int argc, char ** argv){
+void rgb_leds_cmd (int argc, char ** argv){
     int err = 1;
-    int chan;
-    float r, g, b;
+    int chan = 0;
+    float r = 0.0, g = 0.0, b = 0.0;
 
     if (argc != 5) {
-        remote_print("Wrong usage. board_rgb_leds <chan 0-3> <red> <green> <blue>\r\n");
+        remote_print("Wrong usage. rgb_leds <chan 0-3> <red> <green> <blue>\r\n");
         err = -1;
     }
 
@@ -20,7 +19,7 @@ void board_rgb_leds_cmd (int argc, char ** argv){
         err = sscanf(argv[1], "%d", &chan);
         if (err != 1){
             remote_print("Channel selector (%s) has the wrong format. It must be an integer lower than %d.\r\n",
-                         argv[1], BOARD_RGB_LEDS_N);
+                         argv[1], RGB_LEDS_N);
             err = -1;
         }
     }
@@ -58,6 +57,6 @@ void board_rgb_leds_cmd (int argc, char ** argv){
     /* Set color */
     if (err > 0) {
         remote_print("OK!\r\n");
-        board_rgb_leds_set_float((u8) chan, r, g, b);
+        rgb_leds_set_float((u8) chan, r, g, b);
     }
 }
