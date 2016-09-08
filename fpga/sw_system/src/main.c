@@ -139,9 +139,6 @@ int main()
 
 	print_ip_settings(&ipaddr, &netmask, &gw);
 
-	//lcd_write("    [VaXiOS]", 1, 12);
-	//lcd_write("    Welcome!", 2, 12);
-
 	/* receive and process packets */
 	while (1) {
 		if (TcpFastTmrFlag) {
@@ -154,17 +151,8 @@ int main()
 		}
 		xemacif_input(echo_netif);
 
-		//remote_task();
 
-		//wifi_uart_task();
-        usb_uart_task();
 
-        //mb_sleep();
-		//wifi_task();
-		//vaxi_os_task();
-        //rgb_leds_task();
-
-        //xil_printf("probe\r\n");
 	}
 
 	/* never reached */

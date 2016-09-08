@@ -10,6 +10,7 @@
 #include "xparameters.h"
 #include "xuartlite.h"
 #include "../remote.h"
+#include "scheduler.h"
 
 #define USB_UART_BUFF_SIZE_POW (11)
 #define USB_UART_BUFF_SIZE (1<<USB_UART_BUFF_SIZE_POW)
@@ -20,6 +21,11 @@ u8 usb_uart_tx_buff[USB_UART_BUFF_SIZE];
 u32 usb_uart_buff_write_ptr = 0, usb_uart_buff_read_ptr = 0;
 
 XUartLite usb_uart;
+
+/* Function prototypes */
+void usb_uart_task();
+
+static scheduler_entry_t usb_uart_scheduler_entry = {0, 1, usb_uart_task};
 
 void usb_uart_rx_handler(void *CallBackRef, unsigned int EventData) {
     XUartLite_Recv(&usb_uart, usb_uart_rx_buff, USB_UART_BUFF_SIZE);
@@ -41,6 +47,9 @@ void usb_uart_init () {
     usb_uart_buff_write_ptr = 0;
     usb_uart_buff_read_ptr = 0;
     remote_print("%s ... OK\r\n", __func__);
+
+    /* Add entry */
+    scheduler_add_entry(&usb_uart_scheduler_entry);
 }
 
 u32 usb_uart_available() {

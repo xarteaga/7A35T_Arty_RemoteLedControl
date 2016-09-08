@@ -12,3 +12,4 @@ add_library(usb_uart
 
 # Include Directories
 include_directories(usb_uart ../../sdk_workspace/bsp_0/microblaze_0/include)
+include_directories(usb_uart ../scheduler)

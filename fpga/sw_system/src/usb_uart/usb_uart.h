@@ -7,6 +7,5 @@
 void usb_uart_init ();
 u32 usb_uart_read(u8 *buf, u32 maxsize);
 void usb_uart_write(u8 *buf, u32 size);
-void usb_uart_task();
 
 #endif //SW_SYSTEM_USB_UART_H
