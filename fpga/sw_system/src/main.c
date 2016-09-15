@@ -7,15 +7,13 @@
 #include "lwip/init.h"
 
 /* Project includes */
-#include "platform/platform.h"
-#include "platform/platform_config.h"
+#include "platform.h"
+#include "platform_config.h"
 #include "scheduler.h"
-#include "server/server.h"
-#include "vaxi_os.h"
-#include "remote.h"
-#include "rgb_leds/rgb_leds.h"
-#include "usb_uart/usb_uart.h"
-#include "web_loader/web_loader.h"
+#include "server.h"
+#include "rgb_leds.h"
+#include "usb_uart.h"
+#include "web_loader.h"
 
 #if LWIP_DHCP==1
 #include "lwip/dhcp.h"
@@ -93,15 +91,9 @@ int main()
 
     /* start the application (web server, rxtest, txtest, etc..) */
 	scheduler_init();
-
-    //wifi_uart_init();
     usb_uart_init();
     http_server_start(80);
-    remote_init ();
-    //lcd_init();
-    //wifi_init();
-    //vaxi_os_init();
-    rgb_leds_init(50);
+    rgb_leds_init();
     web_loader_init();
 
 	/* now enable interrupts */

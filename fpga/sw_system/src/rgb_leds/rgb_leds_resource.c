@@ -206,7 +206,7 @@ callback_t *rgb_leds_resource_set_mode(request_t *req, response_t *res){
 
     return NULL;
 }
-callback_t *rgb_leds_resource_set_period(request_t *req, response_t *res){
+callback_t *rgb_leds_resource_auto_configure(request_t *req, response_t *res){
     char *argv[10];
     int argn = path2args(req->url, argv);
     int err = 0;
@@ -217,14 +217,35 @@ callback_t *rgb_leds_resource_set_period(request_t *req, response_t *res){
         err = -1;
     }
 
-    /* Parse period */
+    /* Parse parameter */
     if (err >= 0) {
         err = sscanf(argv[2], "%f", &temp);
-        if (err == 1) {
+        if (err != 1) {
+            err = -1;
+        }
+    }
+
+    /* Check paramater */
+    if (strcmp("saturation", argv[1]) == 0){
+        if (temp > 0.0 && temp <= 1.0) {
+            rgb_leds_set_saturation(temp);
+        } else {
+            err = -1;
+        }
+    } else if (strcmp("lightness", argv[1]) == 0){
+        if (temp > 0.0 && temp <= 1.0) {
+            rgb_leds_set_lightness(temp);
+        } else {
+            err = -1;
+        }
+    } else if (strcmp("period", argv[1]) == 0){
+        if (temp > 0.0) {
             rgb_leds_auto_period((u32)(1000.0*temp));
         } else {
             err = -1;
         }
+    } else {
+        err = -1;
     }
 
     /* Check for errors */

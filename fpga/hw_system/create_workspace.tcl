@@ -8,12 +8,20 @@ sdk set_workspace ../sw_system/sdk_workspace
 # 2) Create HW project
 sdk create_hw_project -name hw_0 -hwspec output/hw_system.hdf
 
-# Create BSP
+# 3) Create System BSP
 sdk create_bsp_project -name bsp_0 -hwproject hw_0 -mss src/system.mss
 
-# Create Hello World Project
+# 4) Create Bootloader BSP
+sdk create_bsp_project -name srec_spi_bootloader_bsp -hwproject hw_0 -mss src/bootloader_bsp.mss
+
+# 5) Create Hello World Project
 sdk create_app_project -name helloworld -hwproject hw_0 -proc microblaze_0 -os standalone -lang C -app {Hello World} -bsp bsp_0
 
+# 6) Create Bootloader application
+sdk create_app_project -name srec_spi_bootloader -hwproject hw_0 -proc microblaze_0 -os standalone -lang C -app {SREC Bootloader} -bsp srec_spi_bootloader_bsp
+
 sdk build_project bsp_0
+sdk build_project srec_spi_bootloader_bsp
 sdk build_project helloworld
+sdk build_project srec_spi_bootloader
 exit

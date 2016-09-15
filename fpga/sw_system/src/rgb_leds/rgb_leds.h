@@ -5,6 +5,8 @@
 #include "xil_types.h"
 #include "xparameters.h"
 
+#define RGB_LEDS_EXTERNAL
+
 /* Define the massive_pwm instance to use */
 #ifndef RGB_LEDS_EXTERNAL
 #define RGB_LEDS_BASE_ADDR ((rgb_leds_t*) XPAR_MASSIVE_PWM_0_S00_AXI_BASEADDR)
@@ -35,7 +37,7 @@ typedef enum {
 } rgb_leds_mode_t;
 
 /* Function prototypes */
-void rgb_leds_init(u32 f);
+void rgb_leds_init(void);
 rgb_led_t* rgb_leds_get_channel(u32 chan);
 void rgb_leds_set_freq(u32 f);
 int rgb_leds_set_hex_color (u32 ch, u32 hex);
@@ -43,5 +45,7 @@ int rgb_leds_set_offset(u32 ch, u32 offset);
 int rgb_leds_set_float(u8 ch, float r, float g, float b);
 void rgb_leds_set_mode (rgb_leds_mode_t m);
 void rgb_leds_auto_period(u32 period);
+void rgb_leds_set_saturation(float s);
+void rgb_leds_set_lightness(float l);
 
 #endif //SW_SYSTEM_RGB_LEDS_H

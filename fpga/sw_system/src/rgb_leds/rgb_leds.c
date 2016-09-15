@@ -7,9 +7,7 @@
 
 /* Project Includes */
 #include "rgb_leds.h"
-#include "rgb_leds_cmd.h"
 #include "colors.h"
-#include "tinysh.h"
 #include "scheduler.h"
 #include "server.h"
 #include "rgb_leds_resource.h"
@@ -23,11 +21,8 @@ static color_hsl_t rgb_leds_auto_colors [RGB_LEDS_N];
 void rgb_leds_auto();
 void rgb_leds_task(u32 elapsed);
 
-/* Command entries */
-static tinysh_cmd_t  tinysh_rgb_leds = {0, "rgb_leds", "WiFi Controller Reset", "<chan 0-3> <red> <green> <blue>", rgb_leds_cmd, 0, 0, 0};
-
 /* Scheduler entry */
-static scheduler_entry_t leds_rgb_scheduler_entry = {0, 1000, rgb_leds_task};
+static scheduler_entry_t leds_rgb_scheduler_entry = {0, 10, rgb_leds_task};
 
 /* Resource entries */
 static resource_t rgb_leds_r1 = { "/rgb_leds/freq", (callback_t*) rgb_leds_resource_set_frequency};
@@ -35,20 +30,32 @@ static resource_t rgb_leds_r2 = { "/rgb_leds/color", (callback_t*) rgb_leds_reso
 static resource_t rgb_leds_r3 = { "/rgb_leds/offset", (callback_t*) rgb_leds_resource_set_offset};
 static resource_t rgb_leds_r4 = { "/rgb_leds/auto", (callback_t*)rgb_leds_resource_set_mode};
 static resource_t rgb_leds_r5 = { "/rgb_leds/manual", (callback_t*)rgb_leds_resource_set_mode};
-static resource_t rgb_leds_r6 = { "/rgb_leds/period", (callback_t*)rgb_leds_resource_set_period};
+static resource_t rgb_leds_r6 = { "/rgb_leds/period", (callback_t*)rgb_leds_resource_auto_configure};
+static resource_t rgb_leds_r7 = { "/rgb_leds/saturation", (callback_t*)rgb_leds_resource_auto_configure};
+static resource_t rgb_leds_r8 = { "/rgb_leds/lightness", (callback_t*)rgb_leds_resource_auto_configure};
 
-void rgb_leds_init(u32 f) {
+void rgb_leds_init(void) {
+    u32 i = 0;
+
     /* Set all zeros */
     memset(rgb_leds, 0, sizeof(rgb_leds_t));
 
     /* Set PWM divider */
-    rgb_leds_set_freq(f);
+    rgb_leds_set_freq(120);
 
     /* initialize mode */
-    rgb_leds_set_mode(RGB_LEDS_MODE_MANUAL);
+    rgb_leds_set_mode(RGB_LEDS_MODE_AUTO);
 
-    /* Add VaXi OS Commands */
-    tinysh_add_command(&tinysh_rgb_leds);
+    /**/
+    for (i = 0; i < RGB_LEDS_N; i++) {
+        /* Temporal color */
+        color_hsl_t *hsl = &(rgb_leds_auto_colors[i]);
+
+        /* Set initial color */
+        hsl->h = ((float) i / (float) RGB_LEDS_N);
+        hsl->s = 0.99;  /* Full saturation */
+        hsl->l = 0.5;  /* Half Lightness */
+    }
 
     /* Add scheduler entry */
     scheduler_add_entry(&leds_rgb_scheduler_entry);
@@ -60,34 +67,37 @@ void rgb_leds_init(u32 f) {
     server_add_resource(&rgb_leds_r4);
     server_add_resource(&rgb_leds_r5);
     server_add_resource(&rgb_leds_r6);
+    server_add_resource(&rgb_leds_r7);
+    server_add_resource(&rgb_leds_r8);
+}
+
+void rgb_leds_set_saturation(float s) {
+    u32 i = 0;
+
+    for (i = 0; i < RGB_LEDS_N; i++) {
+        /* Temporal color */
+        color_hsl_t *hsl = &(rgb_leds_auto_colors[i]);
+
+        /* Set initial color */
+        hsl->s = s;  /* Full saturation */
+    }
+}
+
+void rgb_leds_set_lightness(float l) {
+    u32 i = 0;
+
+    for (i = 0; i < RGB_LEDS_N; i++) {
+        /* Temporal color */
+        color_hsl_t *hsl = &(rgb_leds_auto_colors[i]);
+
+        /* Set initial color */
+        hsl->l = l;  /* Full saturation */
+    }
 }
 
 void rgb_leds_set_mode (rgb_leds_mode_t m){
     u32 i = 0;
     color_rgb_t rgb;
-
-    /* If mode is AUTO, then set default values */
-    if (m == RGB_LEDS_MODE_AUTO) {
-
-
-        for (i = 0; i < RGB_LEDS_N; i++) {
-            /* Temporal color */
-            color_hsl_t *hsl = &(rgb_leds_auto_colors[i]);
-
-            /* Set initial color */
-            hsl->h = ((float) i/ (float)RGB_LEDS_N);
-            hsl->s = 0.99;  /* Full saturation */
-            hsl->l = 0.1;  /* Half Lightness */
-
-            /* Convert to RGB */
-            rgb = colors_convert_hsl_rgb(*hsl);
-
-            /* Set PWM */
-            rgb_leds->channels[i].red = rgb.r;
-            rgb_leds->channels[i].green = rgb.g;
-            rgb_leds->channels[i].blue = rgb.b;
-        }
-    }
 
     /* Set mode */
     rgb_leds_mode = m;
@@ -153,7 +163,7 @@ void rgb_leds_auto_period(u32 period) {
     }
 
     xil_printf("Setting period to %d", period);
-    leds_rgb_scheduler_entry.period = period/100;
+    leds_rgb_scheduler_entry.period = period/1000;
 }
 
 void rgb_leds_auto() {
@@ -165,7 +175,7 @@ void rgb_leds_auto() {
         color_hsl_t *hsl = &(rgb_leds_auto_colors[i]);
 
         /* Rotate color */
-        hsl->h = (float)fmod(hsl->h + (float)0.01, (float)1);
+        hsl->h = (float)fmod(hsl->h + (float)0.001, (float)1);
 
         /* Convert to RGB */
         rgb = colors_convert_hsl_rgb(*hsl);

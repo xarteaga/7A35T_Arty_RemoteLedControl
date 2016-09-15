@@ -8,10 +8,6 @@ project (rgb_leds C )
 add_library(rgb_leds
 		rgb_leds.c
 		rgb_leds_resource.c
-		rgb_leds_cmd.c
-		rgb_leds.h
-		rgb_leds_resource.h
-		rgb_leds_cmd.h
 		)
 
 # Include Directories

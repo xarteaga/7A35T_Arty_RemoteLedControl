@@ -7,6 +7,7 @@ set(SDK_WORKSPACE_PATH "${CMAKE_SOURCE_DIR}/sdk_workspace")
 set(XILINX_COMPILERS_PATH "${XILINX_SDK_PATH}/gnu/microblaze/lin/bin/")
 set(XILINX_XSDK "${XILINX_SDK_PATH}/bin/xsdk")
 set(XILINX_XSDB "${XILINX_SDK_PATH}/bin/xsdb")
+set(XILINX_DATA2MEM "${XILINX_SDK_PATH}/bin/data2mem")
 
 # Compiler suite specification
 set(CMAKE_AR "${XILINX_COMPILERS_PATH}/mb-ar")
@@ -27,6 +28,15 @@ add_compile_options(-Wall -O2 -c -fmessage-length=0 -mlittle-endian -mcpu=v9.5 -
 
 # Define linker script
 set(CMAKE_LINKER_SCRIPT "${CMAKE_SOURCE_DIR}/scripts/lscript.ld")
+
+# Define Block Memory Map file
+set(BLOCK_MEMORY_MAP "${CMAKE_SOURCE_DIR}/../hw_system/hw_system/hw_system.srcs/sources_1/bd/system/system.bmm")
+
+#define Bitfile
+set(BITFILE "${CMAKE_SOURCE_DIR}/../hw_system/output/hw_system.bit")
+
+#define Bootloader
+set(BOOTLOADER_ELF "${CMAKE_SOURCE_DIR}/sdk_workspace/srec_spi_bootloader/Debug/srec_spi_bootloader.elf")
 
 # Set Linker arguments
 set(CMAKE_LINKER_FLAGS "-Wl,-T -Wl,${CMAKE_LINKER_SCRIPT}")
@@ -55,10 +65,7 @@ file(GLOB BSP_HEADERS "${CMAKE_SOURCE_DIR}/sdk_workspace/bsp_0/microblaze_0/incl
 # Add sources
 add_executable(sw_system
 		src/main.c
-		src/remote.c
-		src/tinysh.c
 		src/utils.c
-		src/vaxi_os.c
 		${BSP_HEADERS}
 		)
 
@@ -77,6 +84,10 @@ include_directories(sw_system
         src/rgb_leds
 		src/utils
 		src/scheduler
+		src/platform
+		src/server
+		src/usb_uart
+		src/web_loader
 		src
 	)
 link_directories(sw_system sdk_workspace/bsp_0/microblaze_0/lib)
@@ -88,7 +99,11 @@ link_directories(sw_system sdk_workspace/bsp_0/microblaze_0/lib)
 set(CMAKE_C_LINK_EXECUTABLE "${CMAKE_C_COMPILER} ${CMAKE_LINKER_FLAGS} ${CMAKE_LINKER_LIB_DIR} ${CMAKE_LINKER_OPTIONS} <OBJECTS> -o <TARGET> ${CMAKE_LINKER_LIBS} <LINK_LIBRARIES>")
 
 # Setup download command
-add_custom_target(download ${XILINX_XSDB} -s ${CMAKE_SOURCE_DIR}/scripts/download_bitfile.tcl ${CMAKE_SOURCE_DIR}/../hw_system/output/hw_system.bit)
+add_custom_target(download ${XILINX_XSDB} -s ${CMAKE_SOURCE_DIR}/scripts/download_bitfile.tcl ${BITFILE})
 
 # Run
 add_custom_target(run ${XILINX_XSDB} -s ${CMAKE_SOURCE_DIR}/scripts/run_elf.tcl ${CMAKE_BINARY_DIR}/sw_system)
+
+# Permanent
+add_custom_target(permanent ${CMAKE_SOURCE_DIR}/scripts/write_rom.sh ${XILINX_DATA2MEM} ${BLOCK_MEMORY_MAP} ${BOOTLOADER_ELF} ${BITFILE})
+

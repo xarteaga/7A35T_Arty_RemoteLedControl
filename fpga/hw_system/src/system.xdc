@@ -102,3 +102,6 @@ set_property BITSTREAM.CONFIG.M2PIN PULLDOWN [current_design]
 set_property -dict { PACKAGE_PIN G18    IOSTANDARD LVCMOS33 } [get_ports { eth_ref_clk }]; #         Sch=eth_ref_clk 
 set_property -dict { PACKAGE_PIN C2    IOSTANDARD LVCMOS33 } [get_ports { reset }]; #         Sch=reset 
 
+# Set Compression
+set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+

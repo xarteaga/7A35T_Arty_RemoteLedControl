@@ -86,11 +86,6 @@ u32 usb_uart_read(u8 *buf, u32 maxsize) {
 }
 
 void usb_uart_task() {
-    /*char c;
-    while (XUartLite_IsReceiveEmpty(XPAR_AXI_UARTLITE_0_BASEADDR) == FALSE) {
-        XUartLite_Recv(XPAR_AXI_UARTLITE_0_BASEADDR,&c, 1);
-        xil_printf("%c", c);
-    }*/
     XUartLite_ReceiveBuffer(&usb_uart);
     XUartLite_SendBuffer(&usb_uart);
 }
